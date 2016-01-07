@@ -1,0 +1,4 @@
+export GO15VENDOREXPERIMENT="1"
+
+# To setup your development environment, run:
+# $ source dev_env
