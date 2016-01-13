@@ -9,12 +9,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 var decimalPattern *regexp.Regexp
-var Results *Bot
+
+var wait sync.WaitGroup
 
 func init() {
 	decimalPattern = regexp.MustCompile("[0-9.]+")
@@ -66,17 +68,26 @@ func Scrape(URI string) (bot *Bot, err error) {
 // Process takes an io.Reader and processes it
 // for the target elements.
 func (b *Bot) Process() (err error) {
-	b.Find("div.product").Each(func(i int, s *goquery.Selection) {
-		data := product{
-			Title:       GetElementText(s, "h3"),
-			Size:        GetPageSizeBytes(s),
-			UnitPrice:   GetUnitPrice(s),
-			Description: GetDescription(s),
-		}
-		b.Products = append(b.Products, data)
-		b.Total += data.UnitPrice
+	els := b.Find("div.product")
+	wait.Add(len(els.Nodes))
+	els.Each(func(i int, s *goquery.Selection) {
+		go b.Populate(s)
 	})
+	wait.Wait()
 	return nil
+}
+
+func (b *Bot) Populate(s *goquery.Selection) {
+	data := product{
+		Title:       GetElementText(s, "h3"),
+		Size:        GetPageSizeBytes(s),
+		UnitPrice:   GetUnitPrice(s),
+		Description: GetDescription(s),
+	}
+	b.Products = append(b.Products, data)
+	b.Total += data.UnitPrice
+	fmt.Printf("processing product %s\n", data.Title)
+	wait.Done()
 }
 
 func (b *Bot) Find(element string) *goquery.Selection {

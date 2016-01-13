@@ -22,15 +22,15 @@ func TestScrapedProduct(t *testing.T) {
 	defer file.Close()
 	bot, _ := scraper.NewBot(file)
 	bot.Process()
-	product := bot.Products[0]
-	if product.Title != "Sainsbury's Apricot Ripe & Ready x5" {
-		t.Errorf("expected name to contain 5 products, got %s", product.Title)
-	}
-	if product.UnitPrice != 3.50 {
-		t.Errorf("expected unit price to be 3.50, got %f", product.UnitPrice)
-	}
-	if product.Description != "Apricots" {
-		t.Errorf("expected description to be Apricots, got %s", product.Description)
+	for _, product := range bot.Products {
+		if product.Title == "Sainsbury's Apricot Ripe & Ready x5" {
+			if product.UnitPrice != 3.50 {
+				t.Errorf("expected unit price to be 3.50, got %f", product.UnitPrice)
+			}
+			if product.Description != "Apricots" {
+				t.Errorf("expected description to be Apricots, got %s", product.Description)
+			}
+		}
 	}
 }
 
