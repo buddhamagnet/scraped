@@ -77,12 +77,14 @@ func (b *Bot) Process() (err error) {
 	return nil
 }
 
+// Populate populates one element of the
+// products slice.
 func (b *Bot) Populate(s *goquery.Selection) {
 	data := product{
-		Title:       GetElementText(s, "h3"),
-		Size:        GetPageSizeBytes(s),
-		UnitPrice:   GetUnitPrice(s),
-		Description: GetDescription(s),
+		Title:       getElementText(s, "h3"),
+		Size:        getPageSizeBytes(s),
+		UnitPrice:   getUnitPrice(s),
+		Description: getDescription(s),
 	}
 	b.Products = append(b.Products, data)
 	b.Total += data.UnitPrice
@@ -90,6 +92,7 @@ func (b *Bot) Populate(s *goquery.Selection) {
 	wait.Done()
 }
 
+// Find locates an element in the document.
 func (b *Bot) Find(element string) *goquery.Selection {
 	return b.Doc.Find(element)
 }
@@ -104,16 +107,16 @@ func (b *Bot) JSONify() string {
 }
 
 // Unexported convenience functions.
-func GetDescription(s *goquery.Selection) (description string) {
+func getDescription(s *goquery.Selection) (description string) {
 	descriptionPage, _ := s.Find("h3 a").Attr("href")
-	return GetElementTextFromURL(descriptionPage, "div.productText")
+	return getElementTextFromURL(descriptionPage, "div.productText")
 }
 
-func GetElementText(s *goquery.Selection, element string) (text string) {
+func getElementText(s *goquery.Selection, element string) (text string) {
 	return strings.TrimSpace(s.Find(element).Text())
 }
 
-func GetElementTextFromURL(URI, element string) (text string) {
+func getElementTextFromURL(URI, element string) (text string) {
 	doc, err := goquery.NewDocument(URI)
 	if err != nil {
 		return text
@@ -121,17 +124,17 @@ func GetElementTextFromURL(URI, element string) (text string) {
 	return strings.TrimSpace(doc.Find(element).First().Text())
 }
 
-func GetUnitPrice(s *goquery.Selection) (unitPrice float64) {
-	price := decimalPattern.FindString(GetElementText(s, "p.pricePerUnit"))
+func getUnitPrice(s *goquery.Selection) (unitPrice float64) {
+	price := decimalPattern.FindString(getElementText(s, "p.pricePerUnit"))
 	unitPrice, _ = strconv.ParseFloat(price, 64)
 	return unitPrice
 }
 
-func GetPageSizeBytes(s *goquery.Selection) (size string) {
-	return fmt.Sprintf("%sb", GetPageSize(s))
+func getPageSizeBytes(s *goquery.Selection) (size string) {
+	return fmt.Sprintf("%sb", getPageSize(s))
 }
 
-func GetPageSize(s *goquery.Selection) (size string) {
+func getPageSize(s *goquery.Selection) (size string) {
 	URI, _ := s.Find("h3 a").Attr("href")
 	resp, err := http.Get(URI)
 	if err != nil {
