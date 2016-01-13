@@ -14,6 +14,7 @@ import (
 )
 
 var decimalPattern *regexp.Regexp
+var Results *Bot
 
 func init() {
 	decimalPattern = regexp.MustCompile("[0-9.]+")
@@ -22,8 +23,9 @@ func init() {
 // Bot represents a URL and set of scraped link destinations.
 // All fields exported for JSON marshalling.
 type Bot struct {
-	Products []product `json:"results"`
-	Total    float64   `json:"total"`
+	Doc      *goquery.Document `json:"-"`
+	Products []product         `json:"results"`
+	Total    float64           `json:"total"`
 }
 
 type product struct {
@@ -33,34 +35,48 @@ type product struct {
 	Description string  `json:"description"`
 }
 
+// NewBot is the factory function for returning
+// a Bot with a stored document for parsing.
+func NewBot(r io.Reader) (b *Bot, err error) {
+	doc, err := goquery.NewDocumentFromReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return &Bot{Doc: doc}, nil
+}
+
 // Scrape hits a URI and passes the response body
 // to the Process method.
-func (b *Bot) Scrape(URI string) (err error) {
+func Scrape(URI string) (err error) {
 	res, err := http.Get(URI)
 	if err != nil {
 		return err
 	}
-	return b.Process(res.Body)
+	Results, err = NewBot(res.Body)
+	if err != nil {
+		return err
+	}
+	return Results.Process()
 }
 
 // Process takes an io.Reader and processes it
 // for the target elements.
-func (b *Bot) Process(r io.Reader) (err error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return err
-	}
-	doc.Find("div.product").Each(func(i int, s *goquery.Selection) {
+func (b *Bot) Process() (err error) {
+	b.Find("div.product").Each(func(i int, s *goquery.Selection) {
 		data := product{
-			Title:       getElementText(s, "h3"),
-			Size:        getPageSizeBytes(s),
-			UnitPrice:   getUnitPrice(s),
-			Description: getDescription(s),
+			Title:       GetElementText(s, "h3"),
+			Size:        GetPageSizeBytes(s),
+			UnitPrice:   GetUnitPrice(s),
+			Description: GetDescription(s),
 		}
 		b.Products = append(b.Products, data)
 		b.Total += data.UnitPrice
 	})
 	return nil
+}
+
+func (b *Bot) Find(element string) *goquery.Selection {
+	return b.Doc.Find(element)
 }
 
 // JSONify returns the data in JSON format.
@@ -73,16 +89,16 @@ func (b *Bot) JSONify() string {
 }
 
 // Unexported convenience functions.
-func getDescription(s *goquery.Selection) (description string) {
+func GetDescription(s *goquery.Selection) (description string) {
 	descriptionPage, _ := s.Find("h3 a").Attr("href")
-	return getElementTextFromURL(descriptionPage, "div.productText")
+	return GetElementTextFromURL(descriptionPage, "div.productText")
 }
 
-func getElementText(s *goquery.Selection, element string) (text string) {
+func GetElementText(s *goquery.Selection, element string) (text string) {
 	return strings.TrimSpace(s.Find(element).Text())
 }
 
-func getElementTextFromURL(URI, element string) (text string) {
+func GetElementTextFromURL(URI, element string) (text string) {
 	doc, err := goquery.NewDocument(URI)
 	if err != nil {
 		return text
@@ -90,17 +106,17 @@ func getElementTextFromURL(URI, element string) (text string) {
 	return strings.TrimSpace(doc.Find(element).First().Text())
 }
 
-func getUnitPrice(s *goquery.Selection) (unitPrice float64) {
-	price := decimalPattern.FindString(getElementText(s, "p.pricePerUnit"))
+func GetUnitPrice(s *goquery.Selection) (unitPrice float64) {
+	price := decimalPattern.FindString(GetElementText(s, "p.pricePerUnit"))
 	unitPrice, _ = strconv.ParseFloat(price, 64)
 	return unitPrice
 }
 
-func getPageSizeBytes(s *goquery.Selection) (size string) {
-	return fmt.Sprintf("%sb", getPageSize(s))
+func GetPageSizeBytes(s *goquery.Selection) (size string) {
+	return fmt.Sprintf("%sb", GetPageSize(s))
 }
 
-func getPageSize(s *goquery.Selection) (size string) {
+func GetPageSize(s *goquery.Selection) (size string) {
 	URI, _ := s.Find("h3 a").Attr("href")
 	resp, err := http.Get(URI)
 	if err != nil {

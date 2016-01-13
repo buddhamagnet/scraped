@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/buddhamagnet/scraped/scraper"
 	"log"
+
+	"github.com/buddhamagnet/scraped/scraper"
 )
 
 // URI represents the top level web page we want to scrape.
@@ -16,10 +17,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	bot := new(scraper.Bot)
-	err := bot.Scrape(URI)
+	err := scraper.Scrape(URI)
 	if err != nil {
 		log.Fatalf("error retrieving data: %v\n", err)
 	}
-	fmt.Println(bot.JSONify())
+	fmt.Println(scraper.Results.JSONify())
 }
