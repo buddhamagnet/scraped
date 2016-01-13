@@ -1,5 +1,15 @@
 ### SCRAPED.
 
+### UPDATES
+
+As the exercise was completed in under 2 hours improvements could of course be made. No time to add concurrency right now but at least now:
+
+* The scraper is returned in a factory function.
+* The document is now a field on the scraper struct.
+* The document is created using an ```io.Reader``` value for easier testing.
+* This means the tests can now pull raw HTML from tests fixtures for parsing.
+* No more time right now to add things like concurrency etc.
+
 ### NOTES
 
 * This scraper has a single dependency, [goquery](http://github.com/PuerkitoBio/goquery), which simplifies DOM traversal. Otheriwse it's all standard lib (apart from [mux](http://github.com/gorilla/mux) for the web part).
