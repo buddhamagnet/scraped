@@ -7,7 +7,7 @@ As the exercise was completed in under 2 hours improvements could of course be m
 * The scraper is returned in a factory function.
 * The document is now a field on the scraper struct.
 * The document is created using an ```io.Reader``` value for easier testing.
-* This means the tests can now pull raw HTML from tests fixtures for parsing.
+* This means the tests can now pull raw HTML from tests fixtures for parsing. There is an open PR that pulls the fixture data from strings also (using ```strings.NewReader```).
 * Some concurrency has been added for element processing via a ```WaitGroup```.
 
 ### NOTES
