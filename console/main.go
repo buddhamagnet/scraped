@@ -17,9 +17,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	err := scraper.Scrape(URI)
+	bot, err := scraper.Scrape(URI)
 	if err != nil {
 		log.Fatalf("error retrieving data: %v\n", err)
 	}
-	fmt.Println(scraper.Results.JSONify())
+	fmt.Println(bot.JSONify())
 }

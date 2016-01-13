@@ -47,16 +47,20 @@ func NewBot(r io.Reader) (b *Bot, err error) {
 
 // Scrape hits a URI and passes the response body
 // to the Process method.
-func Scrape(URI string) (err error) {
+func Scrape(URI string) (bot *Bot, err error) {
 	res, err := http.Get(URI)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	Results, err = NewBot(res.Body)
+	bot, err = NewBot(res.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return Results.Process()
+	err = bot.Process()
+	if err != nil {
+		return bot, err
+	}
+	return bot, nil
 }
 
 // Process takes an io.Reader and processes it
