@@ -2,7 +2,7 @@
 
 ### UPDATES
 
-As the exercise was completed in under 2 hours improvements could of course be made. No time to add concurrency right now but at least now:
+As the exercise was completed in under 2 hours improvements could of course be made:
 
 * The scraper is returned in a factory function.
 * The document is now a field on the scraper struct.
