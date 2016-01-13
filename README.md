@@ -8,7 +8,7 @@ As the exercise was completed in under 2 hours improvements could of course be m
 * The document is now a field on the scraper struct.
 * The document is created using an ```io.Reader``` value for easier testing.
 * This means the tests can now pull raw HTML from tests fixtures for parsing.
-* No more time right now to add things like concurrency etc.
+* Some concurrency has been added for element processing via a ```WaitGroup```.
 
 ### NOTES
 
