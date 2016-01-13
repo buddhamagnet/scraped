@@ -3,6 +3,7 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -32,10 +33,20 @@ type product struct {
 	Description string  `json:"description"`
 }
 
-// Scrape retrieves the body of a web page and processes it
-// for the target elements.
+// Scrape hits a URI and passes the response body
+// to the Process method.
 func (b *Bot) Scrape(URI string) (err error) {
-	doc, err := goquery.NewDocument(URI)
+	res, err := http.Get(URI)
+	if err != nil {
+		return err
+	}
+	return b.Process(res.Body)
+}
+
+// Process takes an io.Reader and processes it
+// for the target elements.
+func (b *Bot) Process(r io.Reader) (err error) {
+	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return err
 	}
